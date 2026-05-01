@@ -1,1 +1,11 @@
-  n o d e _ m o d u l e s /   d i s t /   * . l o g   _ _ p y c a c h e _ _ /   . e n v  apks/FFOSControllerData/Capturas/Capturas_384x216/Capturas/Capturas_512x288/
+node_modules/
+dist/
+*.log
+__pycache__/
+.env
+apks/
+FFOSControllerData/
+Capturas/Capturas_384x216/
+Capturas/Capturas_512x288/
+tf_gpu/
+*.pyc
