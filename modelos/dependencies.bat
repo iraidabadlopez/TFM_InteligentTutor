@@ -1,1 +1,1 @@
-python -m pip install matplotlib numpy scikit-image scikit-learn pandas tensorflow ipynb
+python -m pip install matplotlib numpy scikit-image scikit-learn pandas tensorflow ipynb torch
