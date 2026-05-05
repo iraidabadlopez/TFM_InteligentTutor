@@ -8,4 +8,5 @@ FFOSControllerData/
 Capturas/Capturas_384x216/
 Capturas/Capturas_512x288/
 tf_gpu/
+venv/
 *.pyc
