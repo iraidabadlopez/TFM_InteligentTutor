@@ -14,11 +14,22 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 random.seed(42)
 
+def show_class_distribution(df):
+    plt.figure(figsize=(10, 6))
+    sns.countplot(x='correcto', data=df, palette='viridis')
+    plt.title('Distribución de Imágenes por Clase')
+    plt.xticks(rotation=45)
+    plt.show()
 
-def show_false_labeling(idx, type, test_paths):
+#######################################################################
 
-    num_images = len(idx)
+def show_false_labeling(idx, type, test_paths, num_images=50):
 
+    if num_images > len(idx):
+        num_images = len(idx)
+
+    idx = idx[:num_images]
+    
     print(f"{type}: {num_images}")
 
     rows = (num_images - 1) // 5 + 1 if num_images > 0 else 1
