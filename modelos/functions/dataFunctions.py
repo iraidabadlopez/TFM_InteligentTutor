@@ -86,6 +86,33 @@ def get_dataset(train_paths, train_labels, val_paths, val_labels, test_paths, te
 
 #########################################################################################
 
+def get_dataset_ts(train_paths, train_labels, val_paths, val_labels, test_paths, test_labels, batch_size, norm_method):
+    
+    # Crear dataset de entrenamiento
+    train_ds = tf.data.Dataset.from_tensor_slices((train_paths, train_labels))
+    train_ds = (train_ds
+                .map(lambda x, y: load_image_tf(x, y, method=norm_method), num_parallel_calls=tf.data.AUTOTUNE) # Carga paralela
+                .batch(batch_size)
+                .prefetch(tf.data.AUTOTUNE))
+
+    # Crear dataset de validación
+    val_ds = tf.data.Dataset.from_tensor_slices((val_paths, val_labels))
+    val_ds = (val_ds
+            .map(lambda x, y: load_image_tf(x, y, method=norm_method), num_parallel_calls=tf.data.AUTOTUNE)
+            .batch(batch_size)
+            .prefetch(tf.data.AUTOTUNE))
+
+    # Crear dataset de test
+    test_ds = tf.data.Dataset.from_tensor_slices((test_paths, test_labels))
+    test_ds = (test_ds
+            .map(lambda x, y: load_image_tf(x, y, method=norm_method), num_parallel_calls=tf.data.AUTOTUNE)
+            .batch(batch_size)
+            .prefetch(tf.data.AUTOTUNE))
+    
+    return train_ds, val_ds, test_ds
+
+#########################################################################################
+
 def get_paths_and_labels(df, test_size=0.2, split=True):
     encoder = LabelEncoder()
     df_valid = df[df['full_path'].apply(os.path.exists)].copy()
@@ -121,9 +148,15 @@ def load_image_tf(path, label, method):
     img = tf.cast(img, tf.float32)
 
     if method is not None:
-        if method == "zero_255":
+        if method == "0_1":
             img = tf.cast(img, tf.float32) / 255.0 
-        elif method == "min_max":
+        elif method == "neg1_1":
             img = (tf.cast(img, tf.float32) / 127.5) - 1.0
             
     return img, label
+
+def load_img_ts(path, size=(256, 256)):
+    img = tf.io.read_file(path)
+    img = tf.image.decode_png(img, channels=3)
+    img = tf.image.resize(img, size)
+    return img / 255.0
