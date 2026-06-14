@@ -1,1 +1,1 @@
-python -m pip install matplotlib "numpy<2" scikit-image scikit-learn pandas tensorflow==2.10.0 torch seaborn opencv-python joblib
+python -m pip install matplotlib "numpy<2" scikit-image scikit-learn pandas tensorflow-gpu==2.10.0 torch seaborn opencv-python joblib
