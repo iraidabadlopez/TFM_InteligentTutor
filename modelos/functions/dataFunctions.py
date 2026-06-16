@@ -121,9 +121,9 @@ def load_image_tf(path, label, method):
     img = tf.cast(img, tf.float32)
 
     if method is not None:
-        if method == "zero_255":
+        if method == "0_1":
             img = tf.cast(img, tf.float32) / 255.0 
-        elif method == "min_max":
+        elif method == "neg1_1":
             img = (tf.cast(img, tf.float32) / 127.5) - 1.0
             
     return img, label

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import random
+import cv2
 import seaborn as sns
 from skimage import io
 from sklearn.metrics import confusion_matrix, multilabel_confusion_matrix
@@ -252,3 +253,76 @@ def show_multiclass_confusion_matrix(test_labels, y_pred_classes, class_names):
     print("-" * 75)
     
 ###############################################################################
+
+def show_imgs(test_paths, y_true, y_pred, class_names, clase_nombre, tipo_caso="FP", max_imagenes=50):
+    
+    tipo_caso = tipo_caso.upper()
+    formatos_validos = ["TP", "TN", "FP", "FN"]
+    if tipo_caso not in formatos_validos:
+        return
+
+    # 1. Conseguir el ID de la clase
+    try:
+        id_objetivo = list(class_names).index(clase_nombre)
+    except ValueError:
+        print(f"La clase '{clase_nombre}' no existe. Opciones: {list(class_names)}")
+        return
+
+    indices_filtrados = []
+
+    # 2. Lógica de filtrado según las definiciones matemáticas de la matriz
+    for idx in range(len(y_true)):
+        real = y_true[idx]
+        predicho = y_pred[idx]
+        
+        if tipo_caso == "TP":
+            # Verdadero Positivo: Era la clase y el modelo dijo que era la clase
+            condicion = (real == id_objetivo and predicho == id_objetivo)
+        elif tipo_caso == "TN":
+            # Verdadero Negativo: No era la clase y el modelo dijo otra cosa (no X)
+            condicion = (real != id_objetivo and predicho != id_objetivo)
+        elif tipo_caso == "FP":
+            # Falso Positivo: No era la clase, pero el modelo dijo que SÍ era
+            condicion = (real != id_objetivo and predicho == id_objetivo)
+        elif tipo_caso == "FN":
+            # Falso Negativo: Era la clase, pero el modelo dijo que era OTRA cosa
+            condicion = (real == id_objetivo and predicho != id_objetivo)
+            
+        if condicion:
+            indices_filtrados.append(idx)
+
+    print(f"Hay {len(indices_filtrados)} casos de tipo [{tipo_caso}] para la clase '{clase_nombre}'")
+
+    # 3. Renderizar las imágenes encontradas
+    if len(indices_filtrados) == 0:
+        print(f"No hay imágenes que mostrar para el criterio seleccionado.")
+        return
+
+    # Limitar para que el Notebook no colapse si hay cientos de imágenes
+    indices_a_mostrar = indices_filtrados[:max_imagenes]
+    
+    columnas = 3
+    filas = (len(indices_a_mostrar) + columnas - 1) // columnas
+    plt.figure(figsize=(15, 5 * filas))
+    
+    for i, idx in enumerate(indices_a_mostrar):
+        path_imagen = test_paths[idx]
+        clase_real_nombre = class_names[y_true[idx]]
+        clase_predicha_nombre = class_names[y_pred[idx]]
+        
+        # Carga básica con OpenCV cambiando a RGB
+        img = cv2.imread(path_imagen)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        
+        plt.subplot(filas, columnas, i + 1)
+        plt.imshow(img)
+        plt.axis('off')
+        
+        # El color del título cambia a verde si acertó (TP/TN) o a rojo si falló (FP/FN)
+        color_titulo = 'green' if tipo_caso in ["TP", "TN"] else 'red'
+        
+        plt.title(f"Real: {clase_real_nombre}\nPredicho: {clase_predicha_nombre}\nArchivo: {os.path.basename(path_imagen)}", 
+                  color=color_titulo, fontsize=10)
+        
+    plt.tight_layout()
+    plt.show()
