@@ -16,18 +16,23 @@ random.seed(42)
 augment_layer = tf.keras.Sequential([
     layers.RandomFlip("horizontal_and_vertical"),
     layers.RandomRotation(0.2),
-    layers.RandomContrast(0.2),
+   # layers.RandomContrast(0.2),
     ])
 
 def augment_if_minority(image, label):
     clase_min = 2 # colocarSoporteSup
     
-    image = tf.cond(
-        tf.equal(label, clase_min),
-        lambda: augment_layer(image, training=True),
-        lambda: image
-    )
-    return image, label
+    condition = tf.equal(label, clase_min)
+    
+    def true_fn():
+        img_4d = tf.expand_dims(image, axis=0)
+        augmented_image = tf.squeeze(augment_layer(img_4d, training=True), axis=0)
+        return tf.data.Dataset.from_tensor_slices(([image, augmented_image], [label, label]))
+    
+    def false_fn():
+        return tf.data.Dataset.from_tensor_slices(([image], [label]))
+    
+    return tf.cond(condition, true_fn, false_fn)
 
 #########################################################################################
 
@@ -58,7 +63,8 @@ def get_dataset(train_paths, train_labels, val_paths, val_labels, test_paths, te
         train_ds = (train_ds
                     .shuffle(len(train_paths)) # Shuffle de rutas
                     .map(lambda x, y: load_image_tf(x, y, method=norm_method), num_parallel_calls=tf.data.AUTOTUNE) # Carga paralela
-                    .map(augment_if_minority, num_parallel_calls=tf.data.AUTOTUNE) # Aumentar clase minoritaria
+                    .flat_map(augment_if_minority)
+                    .shuffle(buffer_size=1000)               
                     .batch(batch_size)
                     .prefetch(tf.data.AUTOTUNE))
     else:
