@@ -15,8 +15,7 @@ random.seed(42)
 
 augment_layer = tf.keras.Sequential([
     layers.RandomFlip("horizontal_and_vertical"),
-    layers.RandomRotation(0.2),
-   # layers.RandomContrast(0.2),
+    layers.RandomRotation(0.2)
     ])
 
 def augment_if_minority(image, label):
